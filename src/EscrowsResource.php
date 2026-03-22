@@ -10,7 +10,7 @@ class EscrowsResource
     {
     }
 
-    /** @param array{limit?: int, cursor?: string, status?: string} $params */
+    /** @param array{limit?: int, status?: string} $params */
     public function list(array $params = []): array
     {
         $res = $this->client->get('/escrows', ['query' => array_filter($params)]);
@@ -23,13 +23,29 @@ class EscrowsResource
         return json_decode((string) $res->getBody(), true);
     }
 
-    public function release(string $escrowId, ?string $idempotencyKey = null): array
+    public function release(string $escrowId, string $idempotencyKey): array
     {
-        $opts = ['json' => []];
-        if ($idempotencyKey !== null) {
-            $opts['headers'] = ['Idempotency-Key' => $idempotencyKey];
-        }
-        $res = $this->client->post("/escrows/{$escrowId}/release", $opts);
+        $res = $this->client->post("/escrows/{$escrowId}/release", [
+            'json' => [],
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
+    public function openDispute(string $escrowId, string $txHash): array
+    {
+        $res = $this->client->post("/escrows/{$escrowId}/open-dispute", [
+            'json' => ['tx_hash' => $txHash],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
+    public function resolveDispute(string $escrowId, bool $releaseToSeller, string $idempotencyKey): array
+    {
+        $res = $this->client->post("/escrows/{$escrowId}/resolve-dispute", [
+            'json' => ['release_to_seller' => $releaseToSeller],
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
         return json_decode((string) $res->getBody(), true);
     }
 }

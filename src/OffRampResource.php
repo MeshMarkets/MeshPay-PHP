@@ -10,20 +10,10 @@ class OffRampResource
     {
     }
 
-    /** @param array{amount_usdc?: float, amount_usd?: float} $params */
-    public function getQuote(array $params): array
+    /** @param array<string, mixed> $body */
+    public function createSession(array $body): array
     {
-        $res = $this->client->post('/off-ramp/quote', ['json' => array_filter($params)]);
-        return json_decode((string) $res->getBody(), true);
-    }
-
-    public function executeTrade(string $quoteId, ?string $idempotencyKey = null): array
-    {
-        $opts = ['json' => ['quote_id' => $quoteId]];
-        if ($idempotencyKey !== null) {
-            $opts['headers'] = ['Idempotency-Key' => $idempotencyKey];
-        }
-        $res = $this->client->post('/off-ramp/trade', $opts);
+        $res = $this->client->post('/off-ramp/sessions', ['json' => $body]);
         return json_decode((string) $res->getBody(), true);
     }
 }

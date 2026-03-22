@@ -7,21 +7,33 @@ use GuzzleHttp\Client;
 class MeshPay
 {
     private Client $client;
+    private Client $clientPublic;
 
-    public function __construct(string $apiKey, string $baseUrl = 'http://localhost:3000')
-    {
+    public function __construct(
+        string $apiKey,
+        string $baseUrl = 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/api',
+        bool $useXApiKeyHeader = false
+    ) {
+        $baseUrl = rtrim($baseUrl, '/') . '/';
+        $authHeaders = ['Accept' => 'application/json', 'Content-Type' => 'application/json'];
+        if ($useXApiKeyHeader) {
+            $authHeaders['X-Api-Key'] = $apiKey;
+        } else {
+            $authHeaders['Authorization'] = 'Bearer ' . $apiKey;
+        }
         $this->client = new Client([
-            'base_uri' => rtrim($baseUrl, '/') . '/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ],
+            'base_uri' => $baseUrl,
+            'headers' => $authHeaders,
+        ]);
+        $this->clientPublic = new Client([
+            'base_uri' => $baseUrl,
+            'headers' => ['Accept' => 'application/json'],
         ]);
     }
 
     public function health(): HealthResource
     {
-        return new HealthResource($this->client);
+        return new HealthResource($this->clientPublic);
     }
 
     public function accounts(): AccountsResource
@@ -42,16 +54,6 @@ class MeshPay
     public function escrows(): EscrowsResource
     {
         return new EscrowsResource($this->client);
-    }
-
-    public function payouts(): PayoutsResource
-    {
-        return new PayoutsResource($this->client);
-    }
-
-    public function apiKeys(): ApiKeysResource
-    {
-        return new ApiKeysResource($this->client);
     }
 
     public function webhookEndpoints(): WebhookEndpointsResource

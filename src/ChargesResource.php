@@ -23,40 +23,44 @@ class ChargesResource
         return json_decode((string) $res->getBody(), true);
     }
 
-    public function create(string $buyerId, string $sellerAccountId, float $amount, ?string $currency = null, ?string $idempotencyKey = null): array
+    /**
+     * @param array<string, mixed> $body payee_membership_id, amount, optional payer_membership_id, buyer_id, currency
+     */
+    public function create(array $body, string $idempotencyKey): array
     {
-        $opts = ['json' => [
-            'buyer_id' => $buyerId,
-            'seller_account_id' => $sellerAccountId,
-            'amount' => $amount,
-        ]];
-        if ($currency !== null) {
-            $opts['json']['currency'] = $currency;
-        }
-        if ($idempotencyKey !== null) {
-            $opts['headers'] = ['Idempotency-Key' => $idempotencyKey];
-        }
-        $res = $this->client->post('/charges', $opts);
+        $res = $this->client->post('/charges', [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
         return json_decode((string) $res->getBody(), true);
     }
 
-    public function fund(string $chargeId, string $entitySecretCiphertext, ?string $idempotencyKey = null): array
+    /** @param array<string, mixed> $body */
+    public function fund(string $chargeId, array $body, string $idempotencyKey): array
     {
-        $opts = ['json' => ['entity_secret_ciphertext' => $entitySecretCiphertext]];
-        if ($idempotencyKey !== null) {
-            $opts['headers'] = ['Idempotency-Key' => $idempotencyKey];
-        }
-        $res = $this->client->post("/charges/{$chargeId}/fund", $opts);
+        $res = $this->client->post("/charges/{$chargeId}/fund", [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
         return json_decode((string) $res->getBody(), true);
     }
 
-    public function refund(string $chargeId, ?float $amount = null, ?string $idempotencyKey = null): array
+    public function cancel(string $chargeId, string $idempotencyKey): array
     {
-        $opts = ['json' => $amount !== null ? ['amount' => $amount] : []];
-        if ($idempotencyKey !== null) {
-            $opts['headers'] = ['Idempotency-Key' => $idempotencyKey];
-        }
-        $res = $this->client->post("/charges/{$chargeId}/refund", $opts);
+        $res = $this->client->post("/charges/{$chargeId}/cancel", [
+            'json' => [],
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
+    /** @param array<string, mixed> $body */
+    public function refund(string $chargeId, array $body, string $idempotencyKey): array
+    {
+        $res = $this->client->post("/charges/{$chargeId}/refund", [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
         return json_decode((string) $res->getBody(), true);
     }
 }

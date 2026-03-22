@@ -10,11 +10,18 @@ class WebhookEndpointsResource
     {
     }
 
-    /** @return array<int, array> */
+    /** @return array<int, array<string, mixed>> */
     public function list(): array
     {
         $res = $this->client->get('/webhook-endpoints');
-        return json_decode((string) $res->getBody(), true) ?? [];
+        $decoded = json_decode((string) $res->getBody(), true);
+        if (is_array($decoded) && array_is_list($decoded)) {
+            return $decoded;
+        }
+        if (is_array($decoded) && isset($decoded['data']) && is_array($decoded['data'])) {
+            return $decoded['data'];
+        }
+        return [];
     }
 
     public function get(string $id): array
@@ -51,5 +58,23 @@ class WebhookEndpointsResource
     public function delete(string $id): void
     {
         $this->client->delete("/webhook-endpoints/{$id}");
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function listDeliveries(string $id, ?int $limit = null): array
+    {
+        $query = [];
+        if ($limit !== null) {
+            $query['limit'] = $limit;
+        }
+        $res = $this->client->get("/webhook-endpoints/{$id}/deliveries", ['query' => $query]);
+        $decoded = json_decode((string) $res->getBody(), true);
+        if (is_array($decoded) && array_is_list($decoded)) {
+            return $decoded;
+        }
+        if (is_array($decoded) && isset($decoded['data']) && is_array($decoded['data'])) {
+            return $decoded['data'];
+        }
+        return [];
     }
 }
