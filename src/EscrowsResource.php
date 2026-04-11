@@ -32,6 +32,35 @@ class EscrowsResource
         return json_decode((string) $res->getBody(), true);
     }
 
+    /** @param array<string, mixed> $body contributor_membership_id, amount */
+    public function createContribution(string $escrowId, array $body, string $idempotencyKey): array
+    {
+        $res = $this->client->post("/escrows/{$escrowId}/contributions", [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
+    /** @param array<string, mixed> $body payee_membership_id */
+    public function setPayee(string $escrowId, array $body, string $idempotencyKey): array
+    {
+        $res = $this->client->post("/escrows/{$escrowId}/set-payee", [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
+    public function cancelPooledEscrow(string $escrowId, string $idempotencyKey): array
+    {
+        $res = $this->client->post("/escrows/{$escrowId}/cancel-pool", [
+            'json' => [],
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
     public function openDispute(string $escrowId, string $txHash): array
     {
         $res = $this->client->post("/escrows/{$escrowId}/open-dispute", [

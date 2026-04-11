@@ -35,6 +35,18 @@ class ChargesResource
         return json_decode((string) $res->getBody(), true);
     }
 
+    /**
+     * @param array<string, mixed> $body target_amount, pool_mode, optional contributor_membership_ids, payee_membership_id, currency
+     */
+    public function createPooledCharge(array $body, string $idempotencyKey): array
+    {
+        $res = $this->client->post('/pooled-charges', [
+            'json' => $body,
+            'headers' => ['Idempotency-Key' => $idempotencyKey],
+        ]);
+        return json_decode((string) $res->getBody(), true);
+    }
+
     /** @param array<string, mixed> $body */
     public function fund(string $chargeId, array $body, string $idempotencyKey): array
     {
